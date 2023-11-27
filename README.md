@@ -28,6 +28,22 @@ pscale branch create mood dev
 pscale connect mood dev --port 3309
 ```
 
+## Db
+
+Scaffold
+
+`npx prisma init`
+
+`npx prisma db push`
+
+- generates an sdk to use for the types for the methods to match
+- creates a table as well in the db for that branch
+
+`npx prisma format`
+
+- for formatting
+- also creates other sides of relationships
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

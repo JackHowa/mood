@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  // prisma is going to handle our relationships not the db 
+  relationMode = "prisma"
+}
+
+// User can have many journal entries
+// Journal entry can have one user
+// Journal entry can have one analysis
+// Analysis can have one journal entry
+
+model User {
+  // give the db a default uuid that's created by prisma
+  // maps to db functionality with prisma
+  // https://www.prisma.io/docs/concepts/components/prisma-schema/names-in-underlying-database#example
+  // prisma used to be graphql server as a service 
+  // this db functionality that we built is helpful on its own
+  // prisma works with planetscale not relying upon prisma's graphql server
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // keeps clerk in sync with the db
+  // only one user can have one clerkId
+  clerkId String @unique
+
+  // to make the email optional can add a question mark
+  // like this email String? @unique
+  email String @unique
+
+  // this is a one to many relationship
+  entries JournalEntry[]
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // type of the user's id matches the type of the user's id
+  userId String
+
+  user User @relation(fields: [userId], references: [id])
+
+  // optional and one-to-one relationship
+  // so could cause a chicken egg problem without one or the other
+  analysis Analysis?
+
+  // full blown text in the db to change it to a fixed width char
+  // tldr want the string to be long
+  content String @db.Text
+
+  // will remove warnings with prisma
+  @@index([userId])
+}
+
+model Analysis {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entryId String
+  entry   JournalEntry @relation(fields: [entryId], references: [id])
+
+  mood     String
+  summary  String  @db.Text
+  color    String
+  negative Boolean
+
+  // can't query without a unique index
+  @@unique([entryId])
+}
